@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>心灵神谕 - 聆听内心的指引</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'PingFang SC', 'Microsoft YaHei', serif;
+      background: #0a0a1a;
+      color: #e0d5c0;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* --- Starfield background --- */
+    #starfield {
+      position: fixed; inset: 0;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle var(--dur) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      0% { opacity: 0.15; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* --- Main container --- */
+    .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      width: 92vw;
+      max-width: 420px;
+      padding: 0 16px;
+    }
+
+    /* --- Mystical orb --- */
+    .orb-wrapper {
+      position: relative;
+      width: 220px; height: 220px;
+      margin: 0 auto 36px;
+    }
+    .orb {
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%,
+        rgba(120, 80, 255, 0.6),
+        rgba(40, 20, 120, 0.8) 50%,
+        rgba(10, 5, 40, 0.95));
+      box-shadow:
+        0 0 60px rgba(120, 80, 255, 0.4),
+        0 0 120px rgba(80, 40, 200, 0.2),
+        inset 0 0 60px rgba(150, 120, 255, 0.15);
+      cursor: pointer;
+      transition: transform 0.4s, box-shadow 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+    .orb::before {
+      content: '';
+      position: absolute;
+      top: 12%; left: 18%;
+      width: 35%; height: 25%;
+      background: radial-gradient(ellipse, rgba(255,255,255,0.25), transparent);
+      border-radius: 50%;
+      transform: rotate(-25deg);
+    }
+    .orb:hover {
+      transform: scale(1.06);
+      box-shadow:
+        0 0 80px rgba(120, 80, 255, 0.6),
+        0 0 160px rgba(80, 40, 200, 0.3),
+        inset 0 0 80px rgba(150, 120, 255, 0.2);
+    }
+    .orb.active {
+      animation: orbPulse 1.8s ease-in-out;
+    }
+    @keyframes orbPulse {
+      0%   { transform: scale(1); }
+      20%  { transform: scale(0.92); }
+      50%  { transform: scale(1.15); box-shadow: 0 0 120px rgba(200, 160, 255, 0.8); }
+      100% { transform: scale(1); }
+    }
+
+    /* --- Orbit rings --- */
+    .ring {
+      position: absolute;
+      border: 1px solid rgba(150, 120, 255, 0.15);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .ring-1 { width: 260px; height: 260px; animation: spin 12s linear infinite; }
+    .ring-2 { width: 300px; height: 300px; animation: spin 18s linear infinite reverse; }
+    .ring-dot {
+      position: absolute;
+      width: 6px; height: 6px;
+      background: rgba(180, 150, 255, 0.7);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(180, 150, 255, 0.5);
+    }
+    .ring-1 .ring-dot { top: -3px; left: 50%; }
+    .ring-2 .ring-dot { bottom: -3px; left: 30%; }
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    /* --- Title --- */
+    h1 {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: 6px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #d4c4ff, #f0e0c0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: rgba(200, 180, 160, 0.6);
+      letter-spacing: 3px;
+      margin-bottom: 40px;
+    }
+
+    /* --- Oracle card --- */
+    .oracle-card {
+      background: linear-gradient(145deg,
+        rgba(30, 20, 60, 0.9),
+        rgba(15, 10, 35, 0.95));
+      border: 1px solid rgba(150, 120, 255, 0.15);
+      border-radius: 16px;
+      padding: 28px 24px;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 32px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s, transform 0.8s;
+      position: relative;
+      overflow: hidden;
+    }
+    .oracle-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .oracle-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%,
+        rgba(150, 120, 255, 0.08), transparent 70%);
+      pointer-events: none;
+    }
+    .oracle-category {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(180, 150, 255, 0.6);
+      margin-bottom: 16px;
+    }
+    .oracle-text {
+      font-size: 20px;
+      line-height: 1.8;
+      letter-spacing: 2px;
+      font-weight: 300;
+      color: #e8dcc8;
+      margin-bottom: 16px;
+    }
+    .oracle-hint {
+      font-size: 12px;
+      color: rgba(200, 180, 160, 0.45);
+      line-height: 1.7;
+      max-width: 300px;
+      font-style: italic;
+    }
+
+    /* --- Button --- */
+    .divine-btn {
+      background: linear-gradient(135deg,
+        rgba(100, 60, 200, 0.3),
+        rgba(60, 30, 140, 0.4));
+      border: 1px solid rgba(150, 120, 255, 0.3);
+      color: #d4c4ff;
+      font-size: 15px;
+      letter-spacing: 4px;
+      padding: 14px 40px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    .divine-btn:hover {
+      background: linear-gradient(135deg,
+        rgba(120, 80, 220, 0.4),
+        rgba(80, 40, 160, 0.5));
+      border-color: rgba(180, 150, 255, 0.5);
+      box-shadow: 0 0 30px rgba(120, 80, 255, 0.2);
+    }
+    .divine-btn:active { transform: scale(0.96); }
+    .divine-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .divine-btn::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .divine-btn:hover::after { opacity: 1; }
+
+    /* --- Particles --- */
+    .particle {
+      position: fixed;
+      width: 3px; height: 3px;
+      background: rgba(180, 150, 255, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* --- Prompt text --- */
+    .prompt {
+      font-size: 13px;
+      color: rgba(200, 180, 160, 0.35);
+      margin-top: 24px;
+      letter-spacing: 1px;
+      animation: breathe 3s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 0.7; }
+    }
+
+    /* --- Loading shimmer --- */
+    .shimmer {
+      display: none;
+      width: 60px; height: 60px;
+      position: relative;
+    }
+    .shimmer.active { display: block; }
+    .shimmer-dot {
+      position: absolute;
+      width: 8px; height: 8px;
+      background: rgba(180, 150, 255, 0.7);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      animation: shimmerAnim 1.5s ease-in-out infinite;
+    }
+    .shimmer-dot:nth-child(1) { animation-delay: 0s; }
+    .shimmer-dot:nth-child(2) { animation-delay: 0.2s; }
+    .shimmer-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes shimmerAnim {
+      0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.3; }
+      50% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+    }
+
+    /* --- Ambient fog --- */
+    .fog {
+      position: fixed;
+      bottom: -20%;
+      left: -10%;
+      width: 120%;
+      height: 50%;
+      background: radial-gradient(ellipse at 50% 100%,
+        rgba(40, 20, 80, 0.3), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: fogDrift 8s ease-in-out infinite alternate;
+    }
+    @keyframes fogDrift {
+      0% { transform: translateX(-3%); opacity: 0.6; }
+      100% { transform: translateX(3%); opacity: 0.9; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="starfield"></div>
+  <div class="fog"></div>
+
+  <div class="container">
+    <h1>心灵神谕</h1>
+    <p class="subtitle">聆听宇宙的低语</p>
+
+    <div class="orb-wrapper" id="orbWrapper">
+      <div class="ring ring-1"><span class="ring-dot"></span></div>
+      <div class="ring ring-2"><span class="ring-dot"></span></div>
+      <div class="orb" id="orb"></div>
+    </div>
+
+    <div class="oracle-card" id="oracleCard">
+      <div class="shimmer" id="shimmer">
+        <span class="shimmer-dot"></span>
+        <span class="shimmer-dot"></span>
+        <span class="shimmer-dot"></span>
+      </div>
+      <div id="oracleContent" style="display:none;">
+        <div class="oracle-category" id="oracleCategory"></div>
+        <div class="oracle-text" id="oracleText"></div>
+        <div class="oracle-hint" id="oracleHint"></div>
+      </div>
+    </div>
+
+    <button class="divine-btn" id="divineBtn">叩问神谕</button>
+    <p class="prompt">静心凝神，触碰水晶球或点击按钮</p>
+  </div>
+
+<script>
+// ========== Oracle Phrases Database ==========
+const oracles = [
+  // --- 方向与抉择 ---
+  {
+    category: "方向",
+    text: "你心中早已有了答案，只是还未敢承认。",
+    hint: "勇气不是没有恐惧，而是带着恐惧前行。停止犹豫，相信直觉。"
+  },
+  {
+    category: "方向",
+    text: "转身之处，即是新路的起点。",
+    hint: "有时候放下不是失去，而是为更好的可能腾出空间。"
+  },
+  {
+    category: "方向",
+    text: "迷雾将在黎明前散去，耐心等待。",
+    hint: "当前的困惑只是暂时的，答案会在你准备好的时候浮现。"
+  },
+  {
+    category: "方向",
+    text: "那条少有人走的路，正在呼唤你。",
+    hint: "大众的选择未必适合你。倾听内心深处那个微弱却坚定的声音。"
+  },
+  {
+    category: "方向",
+    text: "你站在十字路口，但每一条路都通向成长。",
+    hint: "没有绝对的错误选择，关键是选择之后全力以赴。"
+  },
+
+  // --- 内心与自我 ---
+  {
+    category: "内心",
+    text: "你比自己想象的更加强大。",
+    hint: "那些你以为扛不住的事，回头看都成了铠甲。相信自己的韧性。"
+  },
+  {
+    category: "内心",
+    text: "允许自己脆弱，这本身就是一种力量。",
+    hint: "不必时刻坚强。接纳情绪，它们是你内在智慧的信使。"
+  },
+  {
+    category: "内心",
+    text: "你一直在寻找的东西，其实从未离开过你。",
+    hint: "向外求索之前，先向内探寻。答案往往藏在你最熟悉的地方。"
+  },
+  {
+    category: "内心",
+    text: "放下执念，宇宙自有安排。",
+    hint: "有些事越是用力抓握，越容易从指缝间溜走。试试松开手。"
+  },
+  {
+    category: "内心",
+    text: "你的不安，源于你正在突破舒适区。",
+    hint: "成长总伴随着不适。这种感觉恰恰说明你在进步。"
+  },
+
+  // --- 关系与情感 ---
+  {
+    category: "情感",
+    text: "真正在意你的人，不需要你变成别人。",
+    hint: "停止讨好和伪装。对的人会爱真实的你，而不是你的面具。"
+  },
+  {
+    category: "情感",
+    text: "有些告别，是为了更好的重逢。",
+    hint: "离开不意味着结束。生命中每一次分离都在为更深的连接做准备。"
+  },
+  {
+    category: "情感",
+    text: "先成为自己的光，才能照亮他人。",
+    hint: "爱别人之前，先学会爱自己。一个空杯子无法为他人斟满。"
+  },
+  {
+    category: "情感",
+    text: "那个让你夜不能寐的人，也许正在想你。",
+    hint: "心灵的共振超越距离。如果你感受到了牵挂，对方或许也是如此。"
+  },
+  {
+    category: "情感",
+    text: "不必强留。该来的自会来，该走的留不住。",
+    hint: "信任生命的流动。每个人的出现和离开都有其深意。"
+  },
+
+  // --- 时机与行动 ---
+  {
+    category: "时机",
+    text: "现在就是最好的时机，不要再等了。",
+    hint: "完美的准备永远不会到来。迈出第一步，路会在脚下展开。"
+  },
+  {
+    category: "时机",
+    text: "种子已经埋下，静待花开。",
+    hint: "你之前的努力并没有白费。成果正在地下悄然酝酿。"
+  },
+  {
+    category: "时机",
+    text: "风暴过后，彩虹已在路上。",
+    hint: "最黑暗的时刻往往是黎明前的最后考验。再坚持一下。"
+  },
+  {
+    category: "时机",
+    text: "慢下来。你不是在落后，你是在积蓄力量。",
+    hint: "不要被别人的速度焦虑裹挟。每个人都有自己的时区和节奏。"
+  },
+  {
+    category: "时机",
+    text: "旧的不去，新的不来。是时候清理了。",
+    hint: "无论是物品、习惯还是关系，清除不再服务于你的一切。"
+  },
+
+  // --- 智慧与领悟 ---
+  {
+    category: "智慧",
+    text: "你所恐惧的，恰恰是你需要面对的。",
+    hint: "恐惧是一面镜子，映射出你成长的方向。走向它，而非逃避。"
+  },
+  {
+    category: "智慧",
+    text: "答案不在远方，就在你此刻的呼吸之间。",
+    hint: "停下奔波，回到当下。最深的智慧往往在最安静的时刻浮现。"
+  },
+  {
+    category: "智慧",
+    text: "失去的东西会以另一种形式回来。",
+    hint: "宇宙是守恒的。你失去的每一样东西，都在为更好的替代腾出空间。"
+  },
+  {
+    category: "智慧",
+    text: "接受不完美，这就是完美的开始。",
+    hint: "完美主义是进步的敌人。允许自己犯错，在不完美中找到自由。"
+  },
+  {
+    category: "智慧",
+    text: "你不需要所有人都理解你。",
+    hint: "被误解是表达者的宿命。坚持做自己认为对的事，时间会证明一切。"
+  },
+
+  // --- 运势与能量 ---
+  {
+    category: "能量",
+    text: "一股温暖的能量正在向你涌来。",
+    hint: "敞开心扉接受即将到来的美好。好运往往降临在敞开的人身上。"
+  },
+  {
+    category: "能量",
+    text: "你的磁场正在吸引对的人和事。",
+    hint: "保持当前的状态和频率。你散发的能量正在吸引与之匹配的一切。"
+  },
+  {
+    category: "能量",
+    text: "今天的一个小决定，将改变你的轨迹。",
+    hint: "注意今天出现的每一个选择机会。蝴蝶效应始于微小的振翅。"
+  },
+  {
+    category: "能量",
+    text: "你内心的火焰从未熄灭，只是被风吹得更旺。",
+    hint: "困难没有打败你，反而让你的热情更加坚定。这是力量的证明。"
+  },
+  {
+    category: "能量",
+    text: "宇宙正在为你重新排列组合，请保持信任。",
+    hint: "当一切似乎在崩塌的时候，也许是在重建。混乱之中蕴含新秩序。"
+  },
+
+  // --- 梦想与追求 ---
+  {
+    category: "梦想",
+    text: "你的梦想没有过期，只是在等待合适的土壤。",
+    hint: "不要因为时间的流逝而放弃梦想。有些花在冬天播种，春天绽放。"
+  },
+  {
+    category: "梦想",
+    text: "你害怕的不是失败，而是发现自己有多优秀。",
+    hint: "我们最深的恐惧不是无能，而是我们拥有超乎想象的力量。"
+  },
+  {
+    category: "梦想",
+    text: "每一次跌倒，都是大地在教你如何站起来。",
+    hint: "失败不是终点，而是学习的课堂。收集教训，然后继续前行。"
+  },
+  {
+    category: "梦想",
+    text: "远方在呼唤你，是时候启程了。",
+    hint: "你心中那个一直被搁置的计划，现在是时候认真对待它了。"
+  },
+  {
+    category: "梦想",
+    text: "你注定与众不同，停止与他人比较。",
+    hint: "你的道路是独一无二的。把目光从别人身上收回，专注于自己的旅程。"
+  },
+
+  // --- 当下与觉知 ---
+  {
+    category: "觉知",
+    text: "此刻，你正站在最需要你的地方。",
+    hint: "不要怀疑当下的处境。你在这里是有原因的，即使你还没看清。"
+  },
+  {
+    category: "觉知",
+    text: "深呼吸。你已经拥有了所需的一切。",
+    hint: "停止追逐外在的东西。你内在的智慧、勇气和爱已经足够。"
+  },
+  {
+    category: "觉知",
+    text: "今天遇到的那个人，带着你需要的信息。",
+    hint: "留意今天与你交谈的人。每一次对话都可能藏着宇宙给你的线索。"
+  },
+  {
+    category: "觉知",
+    text: "你感受到的直觉是对的，请相信它。",
+    hint: "理性分析之外，直觉是你最古老、最可靠的向导。不要忽视它。"
+  },
+  {
+    category: "觉知",
+    text: "放下手中的事，看看窗外。答案就在那里。",
+    hint: "有时候换一个视角，跳出当前的框架，灵感就会不期而至。"
+  }
+];
+
+// ========== Star field ==========
+function createStarfield() {
+  const container = document.getElementById('starfield');
+  const count = Math.min(window.innerWidth * 0.15, 120);
+  for (let i = 0; i < count; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    star.style.cssText = `
+      width: ${size}px; height: ${size}px;
+      top: ${Math.random() * 100}%;
+      left: ${Math.random() * 100}%;
+      --dur: ${Math.random() * 3 + 2}s;
+      animation-delay: ${Math.random() * 3}s;
+      opacity: ${Math.random() * 0.5 + 0.1};
+    `;
+    container.appendChild(star);
+  }
+}
+
+// ========== Particle burst ==========
+function createParticles(x, y) {
+  const count = 15;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
+    const dist = 60 + Math.random() * 80;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    const size = Math.random() * 3 + 1;
+    p.style.cssText = `
+      left: ${x}px; top: ${y}px;
+      width: ${size}px; height: ${size}px;
+      transition: all ${0.8 + Math.random() * 0.6}s ease-out;
+    `;
+    document.body.appendChild(p);
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(${dx}px, ${dy}px)`;
+      p.style.opacity = '0';
+    });
+    setTimeout(() => p.remove(), 1500);
+  }
+}
+
+// ========== Divination logic ==========
+let lastIndex = -1;
+let isAnimating = false;
+
+function getRandomOracle() {
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * oracles.length);
+  } while (idx === lastIndex && oracles.length > 1);
+  lastIndex = idx;
+  return oracles[idx];
+}
+
+function divine(e) {
+  if (isAnimating) return;
+  isAnimating = true;
+
+  const btn = document.getElementById('divineBtn');
+  const orb = document.getElementById('orb');
+  const card = document.getElementById('oracleCard');
+  const shimmer = document.getElementById('shimmer');
+  const content = document.getElementById('oracleContent');
+
+  btn.disabled = true;
+  orb.classList.add('active');
+
+  // Particle burst from orb center
+  const rect = orb.getBoundingClientRect();
+  createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+  // Show card with loading state
+  card.classList.add('visible');
+  shimmer.classList.add('active');
+  content.style.display = 'none';
+
+  // Simulate mystical "reading" delay
+  const delay = 1200 + Math.random() * 800;
+  setTimeout(() => {
+    const oracle = getRandomOracle();
+
+    document.getElementById('oracleCategory').textContent = `[ ${oracle.category} ]`;
+    document.getElementById('oracleText').textContent = oracle.text;
+    document.getElementById('oracleHint').textContent = oracle.hint;
+
+    shimmer.classList.remove('active');
+    content.style.display = 'block';
+    content.style.opacity = '0';
+    content.style.transform = 'translateY(10px)';
+    content.style.transition = 'opacity 0.6s, transform 0.6s';
+
+    requestAnimationFrame(() => {
+      content.style.opacity = '1';
+      content.style.transform = 'translateY(0)';
+    });
+
+    orb.classList.remove('active');
+    btn.disabled = false;
+    isAnimating = false;
+  }, delay);
+}
+
+// ========== Event listeners ==========
+document.getElementById('divineBtn').addEventListener('click', divine);
+document.getElementById('orb').addEventListener('click', divine);
+
+// Touch feedback for mobile
+document.getElementById('orb').addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  divine(e);
+}, { passive: false });
+
+// ========== Init ==========
+createStarfield();
+
+// Resize handler for starfield
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    document.getElementById('starfield').innerHTML = '';
+    createStarfield();
+  }, 300);
+});
+</script>
+
+</body>
+</html>
